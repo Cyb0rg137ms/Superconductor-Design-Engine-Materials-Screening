@@ -1,0 +1,17 @@
+[tool.poetry]
+name = "superconductor-design"
+version = "1.0.0"
+description = "Materials Discovery Engine screening stoichiometry candidates for superconductivity"
+authors = ["Software & AI Developer"]
+readme = "README.md"
+packages = [{include = "materials"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
