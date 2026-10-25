@@ -5,15 +5,13 @@ Tests for superconductor BCS Hamiltonian solver.
 """
 
 import math
-import pytest
 
 from materials.physics import (
-    tight_binding_dispersion,
     bcs_quasiparticle_energy,
-    bcs_gap_equation,
-    solve_gap_self_consistent,
-    density_of_states,
     coherence_length,
+    density_of_states,
+    solve_gap_self_consistent,
+    tight_binding_dispersion,
 )
 
 
@@ -32,9 +30,7 @@ def test_bcs_quasiparticle_energy():
 
 
 def test_solve_gap_self_consistent():
-    gap, converged, _ = solve_gap_self_consistent(
-        hopping_t=1.0, mu=0.0, coupling_g=1.5, n_k=200
-    )
+    gap, converged, _ = solve_gap_self_consistent(hopping_t=1.0, mu=0.0, coupling_g=1.5, n_k=200)
     assert converged
     assert gap > 0
 

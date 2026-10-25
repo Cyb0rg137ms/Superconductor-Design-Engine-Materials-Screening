@@ -7,7 +7,6 @@ BCS (Bardeen-Cooper-Schrieffer) mean-field Hamiltonian solver for superconductor
 from __future__ import annotations
 
 import math
-from typing import List, Tuple
 
 
 def tight_binding_dispersion(
@@ -56,6 +55,12 @@ def bcs_gap_equation(
     return (coupling_g / n_k) * rhs
 
 
+def _v2_solve(hopping_t: float, mu: float, coupling_g: float, n_k: int, temperature: float) -> float:
+    from scdesign.bcs import Chain, solve_gap
+
+    return solve_gap(Chain(hopping_t, mu, coupling_g, n_k), temperature)
+
+
 def solve_gap_self_consistent(
     hopping_t: float,
     mu: float,
@@ -65,20 +70,13 @@ def solve_gap_self_consistent(
     temperature: float = 0.0,
     max_iter: int = 200,
     tol: float = 1e-6,
-) -> Tuple[float, bool, int]:
-    alpha = 0.3
-    delta = delta_init
-
-    for i in range(max_iter):
-        rhs = bcs_gap_equation(delta, hopping_t, mu, coupling_g, n_k, temperature)
-        delta_new = (1 - alpha) * delta + alpha * rhs
-
-        if abs(delta_new - delta) < tol:
-            return delta_new, True, i + 1
-
-        delta = delta_new
-
-    return delta, False, max_iter
+) -> tuple[float, bool, int]:
+    """v1 API. v2 solves the gap equation by bisection (guaranteed convergence);
+    ``delta_init``, ``max_iter`` and the third return value (always 1) are kept only so v1
+    callers that unpack three values still work."""
+    delta = _v2_solve(hopping_t, mu, coupling_g, n_k, temperature)
+    rhs = bcs_gap_equation(delta, hopping_t, mu, coupling_g, n_k, temperature)
+    return delta, abs(rhs - delta) <= max(tol, 1e-9 * max(delta, 1.0)) or delta == 0.0, 1
 
 
 def density_of_states(
@@ -86,10 +84,10 @@ def density_of_states(
     mu: float,
     delta: float,
     n_energies: int = 200,
-    energy_range: Tuple[float, float] = (-3.0, 3.0),
+    energy_range: tuple[float, float] = (-3.0, 3.0),
     broadening: float = 0.05,
     n_k: int = 500,
-) -> Tuple[List[float], List[float]]:
+) -> tuple[list[float], list[float]]:
     E_min, E_max = energy_range
     dE = (E_max - E_min) / n_energies
     energies = [E_min + (i + 0.5) * dE for i in range(n_energies)]
@@ -109,8 +107,8 @@ def density_of_states(
             v2 = 0.5 * (1.0 - xi_k / E_k)
 
         for j, E in enumerate(energies):
-            lorentz_p = broadening / (math.pi * ((E - E_k) ** 2 + broadening ** 2))
-            lorentz_h = broadening / (math.pi * ((E + E_k) ** 2 + broadening ** 2))
+            lorentz_p = broadening / (math.pi * ((E - E_k) ** 2 + broadening**2))
+            lorentz_h = broadening / (math.pi * ((E + E_k) ** 2 + broadening**2))
             dos[j] += (u2 * lorentz_p + v2 * lorentz_h) / n_k
 
     return energies, dos
