@@ -11,5 +11,5 @@ __all__ = [
     "SuperconductorDesigner",
     "calculate_allen_dynes_tc",
     "render_ascii_chart",
-    "try_save_plot"
+    "try_save_plot",
 ]
